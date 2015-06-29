@@ -1,6 +1,7 @@
 import re
 import sys
 import warnings
+import cPickle
 from six import (iteritems)
 
 
@@ -137,3 +138,17 @@ def _fields_list_to_dict(fields):
                             "each an instance of %s" % (basestring.__name__,))
         as_dict[field] = 1
     return as_dict
+
+def save_obj(filename, dictionary):
+    """
+    Pickles and saves a dictionary at the specified location on the fs.
+    """
+    with open(filename, 'wb') as outfile:
+        cPickle.dump(dictionary, outfile)
+
+def load_obj(filename):
+    """
+    Loads a pickled dictionary from the given location on the fs.
+    """
+    with open(filename, 'rb') as infile:
+        return cPickle.load(infile)

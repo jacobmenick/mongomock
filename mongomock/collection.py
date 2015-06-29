@@ -8,7 +8,7 @@ import warnings
 from sentinels import NOTHING
 from .filtering import filter_applies, iter_key_candidates
 from . import ObjectId, OperationFailure, DuplicateKeyError
-from .helpers import basestring, xrange, print_deprecation_warning, hashdict
+from .helpers import basestring, xrange, print_deprecation_warning, hashdict, save_obj, load_obj
 
 try:
     from collections import OrderedDict
@@ -44,6 +44,8 @@ class Collection(object):
         self._documents = OrderedDict()
         self._uniques = []
 
+    
+
     def __repr__(self):
         return "Collection({0}, '{1}')".format(self._Collection__database, self.name)
 
@@ -51,13 +53,35 @@ class Collection(object):
         return self._Collection__database[self.name + '.' + name]
 
     def __getattr__(self, name):
-        return self.__getitem__(name)
+        #Begin JM breaking the code.
+        if name == 'dump':
+            return self.save
+        elif name == 'restore':
+            return self.restore
+        # End JM Breaking the code.
+        else:
+            return self.__getitem__(name)
 
     def insert(self, data, manipulate=True,
                safe=None, check_keys=True, continue_on_error=False, **kwargs):
         if isinstance(data, list):
             return [self._insert(element) for element in data]
         return self._insert(data)
+
+    def dump(self, outdir):
+        """
+        Pickle and dump all documents to the specified location.
+        """
+        outfn = '/'.join([outdir, self.name + '.p'])
+        print outfn
+        save_obj(outfn, self._documents)
+        pass
+
+    def restore(self, fn):
+        """
+        Restore a pickled set of documents from the given location.
+        """
+        self._documents = load_obj(fn)
 
     def _insert(self, data):
 
