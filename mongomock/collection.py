@@ -5,6 +5,7 @@ import itertools
 import json
 import time
 import warnings
+import multiprocessing as mp
 from sentinels import NOTHING
 from .filtering import filter_applies, iter_key_candidates
 from . import ObjectId, OperationFailure, DuplicateKeyError
@@ -58,6 +59,8 @@ class Collection(object):
             return self.save
         elif name == 'restore':
             return self.restore
+        elif name == 'parallel_scan':
+            return self.parallel_scan
         # End JM Breaking the code.
         else:
             return self.__getitem__(name)
@@ -82,6 +85,18 @@ class Collection(object):
         Restore a pickled set of documents from the given location.
         """
         self._documents = load_obj(fn)
+
+    def parallel_scan(self, n_cursors=mp.cpu_count()):
+        """
+        Return a list of n_cursors cursors
+        which can be iterated over in parallel.
+        Well, they aren't technically cursors because they are just generators of docs....
+        """
+        cursor_size = self.count()/n_cursors +1
+        cursors = [
+            (d for d in self.find()[i*cursor_size:(i+1)*cursor_size]) for i in range(n_cursors)
+        ]
+        return cursors
 
     def _insert(self, data):
 

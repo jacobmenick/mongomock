@@ -4,7 +4,6 @@ import warnings
 import cPickle
 from six import (iteritems)
 
-
 def print_deprecation_warning(old_param_name, new_param_name):
     warnings.warn("'%s' has been deprecated to be in line with pymongo implementation, "
                   "a new parameter '%s' should be used instead. the old parameter will be kept for backward "
